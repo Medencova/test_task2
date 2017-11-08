@@ -107,8 +107,8 @@ $pdo = new PDO($dsn, $user, $pass, $opt);
  *
  * @return array|void 
  */
-function load_users_data($user_ids) {
-    global $pdo;
+$load_users_data = function ($user_ids) use ($pdo) {
+
     $data = null;
     
     if (!$user_ids) {
@@ -140,8 +140,8 @@ function load_users_data($user_ids) {
         $pdo = null;
         return $data;
     }
-}
-$data = load_users_data($_GET['user_ids']);
+};
+$data = $load_users_data($_GET['user_ids']);
 if ($data) {
     foreach ($data as $user_id => $name){
         echo "<a href=\"/show_user.php?id=$user_id\">$name</a>";
