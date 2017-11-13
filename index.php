@@ -162,20 +162,3 @@ if ($data) {
     }
 }
 
-
-
-
-$url = 'https://www.somehost.com/test/index.html?param1=4&param2=3&param3=2&param4=1&param5=3';
-$query = parse_url($url, PHP_URL_QUERY);
-parse_str($query, $output);
-foreach ($output as $key => $value) {
-    if ($value == 3) {
-        unset($output[$key]);
-    }
-}
-$path = parse_url($url, PHP_URL_PATH);
-asort($output);
-$output['url'] = $path;
-$query = http_build_query($output);
-$new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . '/?' . $query;
-
