@@ -1,11 +1,12 @@
 <?php
 //#1
-
-"SELECT name.users, count(phone.phone_numbers)
-        FROM users
-        LEFT JOIN phone_numbers ON id.users = user_id.phone_numbers
-        WHERE gender.users = 2 
-            AND DATEDIF(year,birth_date,GETDATE()) BETWEEN (18, 22)
+//по стуктуре таблицы - хранить дни рождения в datetime
+"SELECT u.name, count(*)
+        FROM users AS u
+        INNER JOIN phone_numbers AS pn
+        ON u.id = pn.user_id
+        WHERE u.gender = 2 
+            AND TIMESTAMPDIFF(YEAR, FROM_UNIXTIME(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 18 AND 22
             GROUP BY id.users";
 
 //#2
@@ -16,16 +17,16 @@
  *
  * @return string|void новый url
  */
-function get_valid_url($url) {
-    if (!$url){
+function getValidUrl($url) 
+{
+    
+    if (!$url) {
         return null;
     }
     $query = parse_url($url, PHP_URL_QUERY);
     parse_str($query, $output);
-    foreach ($output as $key => $value)
-    {
-        if ($value == 3)
-        {
+    foreach ($output as $key => $value) {
+        if ($value == 3) {
             unset($output[$key]);
         }
     }
@@ -36,51 +37,61 @@ function get_valid_url($url) {
     return $new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . '/?' . $query;
 }
 
-$new_url = get_valid_url('https://www.somehost.com/test/index.html?param1=4&param2=3&param3=2&param4=1&param5=3');
+$new_url = getValidUrl('https://www.somehost.com/test/index.html?param1=4&param2=3&param3=2&param4=1&param5=3');
 
 
 //#3
 //использовался паттерн Строитель
-class Article {
+class Article 
+{
     
     protected $text;
     protected $autor;
     
-    public function __construct(User $user, $text) {
+    public function __construct(User $user, $text) 
+    {
         $this->autor = $user;
         $this->text = $text;
     }
     
-    public function change_author(User $user) {
+    public function changeAuthor(User $user) 
+    {
         $this->autor = $user;
     }
     
-    public function get_author() {
+    public function getAuthor() 
+    {
         return $this->autor;
     }
     
-    public function get_aricle() {
+    public function getAricle() 
+    {
         return $this->text;
     }
 }
-class User {
+class User 
+{
     
     protected $name;
     protected $articles = array();
     
-    public function __construct($name) {
+    public function __construct($name) 
+    {
         $this->name = $name;
     }
     
-    public function create_article($text):Article {
+    public function createArticle($text):Article 
+    {
         return $this->articles[] = new Article($this,$text);
     }
     
-    public function get_articles() {
+    public function getArticles() 
+    {
         return $this->articles;
     }
     
-    public function get_name() {
+    public function getName() 
+    {
         return $this->name;
     }
 }
@@ -107,8 +118,9 @@ $pdo = new PDO($dsn, $user, $pass, $opt);
  *
  * @return array|void 
  */
-$load_users_data = function ($user_ids) use ($pdo) {
-
+function loadUsersData($user_ids) 
+{
+    global $pdo;
     $data = null;
     
     if (!$user_ids) {
@@ -118,32 +130,52 @@ $load_users_data = function ($user_ids) use ($pdo) {
     if (is_int($user_ids)) {
         $stmt = $pdo->prepare('SELECT  `name`  FROM `user` WHERE `id` = ?');
         $stmt->execute(array($user_ids));
-        foreach ($row = $stmt->fetchAll() as $result){
-            if($result['name']){
+        foreach ($row = $stmt->fetchAll() as $result) {
+            if ($result['name']) {
                 return $data[$user_ids] = $result['name'];
             }
         }
         $pdo = null;
     } else {
         $user_ids = explode(',', $user_ids);
+        $stmt = $pdo->prepare('SELECT  `name`  FROM `user` WHERE `id` = ?');
         foreach ($user_ids as $user_id) {
             if (is_int($user_id)) {
-                $stmt = $pdo->prepare('SELECT  `name`  FROM `user` WHERE `id` = ?');
                 $stmt->execute(array($user_id));
-                foreach ($row = $stmt->fetchAll() as $result){
-                    if($result['name']){
+                foreach ($row = $stmt->fetchAll() as $result) {
+                    if ($result['name']) {
                         $data[$user_id] = $result['name'];
                     }
                 }               
             }
         }
+        $stmt = null;
         $pdo = null;
         return $data;
     }
-};
-$data = $load_users_data($_GET['user_ids']);
+}
+$data = loadUsersData($_GET['user_ids']);
+
 if ($data) {
-    foreach ($data as $user_id => $name){
+    foreach ($data as $user_id => $name) {
         echo "<a href=\"/show_user.php?id=$user_id\">$name</a>";
     }
 }
+
+
+
+
+$url = 'https://www.somehost.com/test/index.html?param1=4&param2=3&param3=2&param4=1&param5=3';
+$query = parse_url($url, PHP_URL_QUERY);
+parse_str($query, $output);
+foreach ($output as $key => $value) {
+    if ($value == 3) {
+        unset($output[$key]);
+    }
+}
+$path = parse_url($url, PHP_URL_PATH);
+asort($output);
+$output['url'] = $path;
+$query = http_build_query($output);
+$new_url = parse_url($url, PHP_URL_SCHEME) . '://' . parse_url($url, PHP_URL_HOST) . '/?' . $query;
+
