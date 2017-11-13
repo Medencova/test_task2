@@ -1,9 +1,10 @@
 <?php
 //#1
 //по стуктуре таблицы - хранить дни рождения в datetime
+//добавить индексы на gender
 "SELECT u.name, count(*)
         FROM users AS u
-        INNER JOIN phone_numbers AS pn
+        LEFT JOIN phone_numbers AS pn
         ON u.id = pn.user_id
         WHERE u.gender = 2 
             AND TIMESTAMPDIFF(YEAR, FROM_UNIXTIME(u.birth_date, '%Y-%m-%d'), CURDATE()) BETWEEN 18 AND 22
